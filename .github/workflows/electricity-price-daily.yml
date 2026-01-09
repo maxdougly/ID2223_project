@@ -43,12 +43,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Pull latest changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull origin main --rebase
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -83,6 +77,7 @@ jobs:
         with:
           commit_message: "Daily forecast generated [skip ci]"
           file_pattern: 'outputs/*.csv outputs/*.png'
+          pull_strategy: 'rebase'
 
       - name: Upload outputs to Hugging Face Space
         if: success()
