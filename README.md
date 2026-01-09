@@ -20,7 +20,7 @@ Authors: Max Dougly, Erik Forsell
 
 ## Important links
 
-- Live app: [HuggingFace Space](https://huggingface.co/spaces/eforse01/Electricity_price_predictor)
+- Live app: [HuggingFace Space](https://huggingface.co/spaces/maxdougly/Electricity_price_predictor)
 - Feature store: [Hopsworks Project](https://c.app.hopsworks.ai/p/1333397/view)
 - Weather API: [OpenMeteo](https://open-meteo.com/)
 - Price API: [elprisetjustnu.se](https://www.elprisetjustnu.se/api/v1/prices/)
