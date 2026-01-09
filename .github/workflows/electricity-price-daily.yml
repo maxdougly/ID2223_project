@@ -28,6 +28,8 @@ on:
 jobs:
   run-daily-pipeline:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
