@@ -91,16 +91,16 @@ jobs:
           upload_folder(
               folder_path="outputs",
               path_in_repo="outputs",
-              repo_id="eforse01/Electricity_price_predictor",
+              repo_id="maxdougly/Electricity_price_predictor",
               repo_type="space",
               token=token,
           )
-          print("✅ Uploaded outputs/ to Hugging Face Space")
+          print("Uploaded outputs/ to Hugging Face Space")
           PY
 
 
       - name: Notify on failure
         if: failure()
         run: |
-          echo "❌ Pipeline failed! Check the logs for details."
+          echo "Pipeline failed! Check the logs for details."
           # Add notification logic here (email, Slack, etc.)
