@@ -52,8 +52,8 @@ jobs:
         env:
           HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
         run: |
-          TARGET_END=$(date -u -d "2 days ago" +%Y-%m-%d)
-          TARGET_START=$(date -u -d "9 days ago" +%Y-%m-%d)
+          TARGET_END=$(date -u -d "1 day ago" +%Y-%m-%d)
+          TARGET_START=$(date -u -d "8 days ago" +%Y-%m-%d)
           echo "Backfilling ${TARGET_START} to ${TARGET_END} (window for lag/rolling features)..."
       
           python pipelines/feature_backfill.py \
