@@ -1,0 +1,106 @@
+name: Electricity Price Daily Pipeline
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC (07:00 CET in winter, 08:00 CEST in summer)
+    - cron: '0 6 * * *'
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode (local or production)'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - local
+          - production
+      model_type:
+        description: 'Model type (xgboost or lstm)'
+        required: false
+        default: 'lstm'
+        type: choice
+        options:
+          - xgboost
+          - lstm
+
+jobs:
+  run-daily-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Feature Backfill (daily update)
+        env:
+          HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+        run: |
+          TARGET_END=$(date -u -d "2 days ago" +%Y-%m-%d)
+          TARGET_START=$(date -u -d "9 days ago" +%Y-%m-%d)
+          echo "Backfilling ${TARGET_START} to ${TARGET_END} (window for lag/rolling features)..."
+      
+          python pipelines/feature_backfill.py \
+            --mode production \
+            --start-date ${TARGET_START} \
+            --end-date ${TARGET_END}
+
+      - name: Run Inference Pipeline (generate forecast)
+        env:
+          HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+        run: |
+          MODEL_TYPE="${{ github.event.inputs.model_type || 'lstm' }}"
+          echo "Generating 7-day forecast using ${MODEL_TYPE} model..."
+          python pipelines/inference_pipeline.py \
+            --mode production \
+            --model-type ${MODEL_TYPE} \
+            --days 7
+
+      - name: Commit forecast outputs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Daily forecast generated [skip ci]"
+          file_pattern: 'outputs/*.csv outputs/*.png'
+          push_options: '--force'
+
+      - name: Upload outputs to Hugging Face Space
+        if: success()
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python -m pip install --upgrade huggingface_hub
+          python - <<'PY'
+          import os
+          from huggingface_hub import upload_folder
+      
+          token = os.environ["HF_TOKEN"]
+      
+          upload_folder(
+              folder_path="outputs",
+              path_in_repo="outputs",
+              repo_id="eforse01/Electricity_price_predictor",
+              repo_type="space",
+              token=token,
+          )
+          print("✅ Uploaded outputs/ to Hugging Face Space")
+          PY
+
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Pipeline failed! Check the logs for details."
+          # Add notification logic here (email, Slack, etc.)
