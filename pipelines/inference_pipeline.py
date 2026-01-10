@@ -229,11 +229,8 @@ def create_comparison_visualization(historical_df, output_path='outputs/predicte
         print(f"  No tracking data yet. Run daily to build comparison history.")
         return None
 
-    print(f"  [DEBUG] Reading prediction tracking file...")
     tracking_df = pd.read_csv(tracking_file)
-    print(f"  [DEBUG] Tracking rows loaded: {len(tracking_df)}")
-    print(f"  [DEBUG] Tracking columns: {list(tracking_df.columns)}")
-    print(f"  [DEBUG] Tracking date range (before parsing): {tracking_df['target_date'].min()} to {tracking_df['target_date'].max()}")
+    print(f"  Tracking: {len(tracking_df)} rows, range {tracking_df['target_date'].min()} to {tracking_df['target_date'].max()}")
 
     tracking_df['target_date'] = (
         pd.to_datetime(tracking_df['target_date'], utc=True)
@@ -246,43 +243,27 @@ def create_comparison_visualization(historical_df, output_path='outputs/predicte
         .dt.normalize()
     )
 
-    print(f"  [DEBUG] Tracking date range (after parsing): {tracking_df['target_date'].min()} to {tracking_df['target_date'].max()}")
-    print(f"  [DEBUG] Non-null predicted_price count: {tracking_df['predicted_price'].notna().sum()}")
-
-    # Get actual prices from historical data
-    print(f"  [DEBUG] Processing historical data...")
-    print(f"  [DEBUG] Historical rows received: {len(historical_df)}")
-    print(f"  [DEBUG] Historical columns: {list(historical_df.columns)}")
-
     historical_df['date'] = (
         pd.to_datetime(historical_df['date'], utc=True)
         .dt.tz_localize(None)
         .dt.normalize()
     )
 
-    print(f"  [DEBUG] Historical date range: {historical_df['date'].min()} to {historical_df['date'].max()}")
+    print(f"  Historical: {len(historical_df)} rows, range {historical_df['date'].min()} to {historical_df['date'].max()}")
 
     actual_prices = historical_df[['date', 'price_sek_kwh_mean']].copy()
     actual_prices.columns = ['target_date', 'actual_price']
-    print(f"  [DEBUG] Actual prices prepared: {len(actual_prices)} rows")
 
-    print(f"  [DEBUG] Performing merge on target_date...")
     comparison_df = tracking_df.merge(actual_prices, on='target_date', how='inner')
-    print(f"  [DEBUG] Merge result: {len(comparison_df)} rows")
-
-    if len(comparison_df) > 0:
-        print(f"  [DEBUG] Merged date range: {comparison_df['target_date'].min()} to {comparison_df['target_date'].max()}")
+    print(f"  Merge: {len(comparison_df)} matches, range {comparison_df['target_date'].min() if len(comparison_df) > 0 else 'N/A'} to {comparison_df['target_date'].max() if len(comparison_df) > 0 else 'N/A'}")
 
     if comparison_df.empty:
-        print(f"  [DEBUG] Comparison is EMPTY after merge - no matching dates!")
         print(f"  No actual data available yet for comparison.")
         return None
 
     comparison_df = comparison_df.sort_values(['target_date', 'prediction_date'])
     comparison_df = comparison_df.drop_duplicates('target_date', keep='last')
     comparison_df = comparison_df.sort_values('target_date')
-
-    print(f"  [DEBUG] After deduplication: {len(comparison_df)} rows")
 
     os.makedirs('outputs', exist_ok=True)
 
@@ -291,12 +272,8 @@ def create_comparison_visualization(historical_df, output_path='outputs/predicte
     comparison_out['target_date'] = pd.to_datetime(comparison_out['target_date']).dt.strftime('%Y-%m-%d')
     comparison_out['prediction_date'] = pd.to_datetime(comparison_out['prediction_date']).dt.strftime('%Y-%m-%d')
 
-    print(f"  [DEBUG] Writing comparison_timeseries.csv with {len(comparison_out)} rows...")
-    print(f"  [DEBUG] First row: {comparison_out.iloc[0].to_dict() if len(comparison_out) > 0 else 'N/A'}")
-    print(f"  [DEBUG] Last row: {comparison_out.iloc[-1].to_dict() if len(comparison_out) > 0 else 'N/A'}")
-
     comparison_out.to_csv('outputs/comparison_timeseries.csv', index=False)
-    print(f"  [DEBUG] comparison_timeseries.csv written successfully!")
+    print(f"  Wrote comparison_timeseries.csv: {len(comparison_out)} rows")
 
     comparison_df['error'] = comparison_df['predicted_price'] - comparison_df['actual_price']
     comparison_df['abs_error'] = comparison_df['error'].abs()
