@@ -2,8 +2,8 @@ name: Electricity Price Daily Pipeline
 
 on:
   schedule:
-    # Run daily at 12:00 UTC (13:00 CET in winter, 14:00 CEST in summer)
-    - cron: '0 12 * * *'
+    # Run daily at 18:00 UTC (19:00 CET in winter, 20:00 CEST in summer)
+    - cron: '0 18 * * *'
 
   # Allow manual trigger
   workflow_dispatch:

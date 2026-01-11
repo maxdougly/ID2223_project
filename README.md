@@ -52,7 +52,7 @@ Generates 7-day price forecasts by loading the latest model from the registry, p
 Provides a unified interface for local Parquet storage and Hopsworks Feature Store access. Allows seamless switching between local development and production deployment without changing pipeline code.
 
 ### GitHub Actions workflow
-Automates daily feature backfill and inference tasks at 06:00 UTC. Commits generated outputs (CSV and PNG files) to the repository and syncs them to the HuggingFace Space for visualization.
+Automates daily feature backfill and inference tasks at 18:00 UTC. Commits generated outputs (CSV and PNG files) to the repository and syncs them to the HuggingFace Space for visualization.
 
 ### HuggingFace Space
 A Gradio web UI that displays forecast charts and prediction tracking. Outputs are synchronized to the Space on a daily schedule, providing an interactive interface for viewing electricity price predictions.
@@ -63,10 +63,10 @@ A Gradio web UI that displays forecast charts and prediction tracking. Outputs a
 
 | Task | Schedule | Description |
 |------|----------|-------------|
-| Feature backfill | Daily | Collects data from 9 days ago to 2 days ago and appends to feature store. |
-| Inference | Daily | Generates 7-day forecast and comparison charts. |
-| Commit outputs | Daily | Commits CSV and PNG files to repository. |
-| Upload to HuggingFace | Daily | Syncs outputs folder to the HuggingFace Space. |
+| Feature backfill | Daily at 18:00 UTC | Collects data from 8 days ago to 1 day ago and appends to feature store. |
+| Inference | Daily at 18:00 UTC | Generates 7-day forecast and comparison charts. |
+| Commit outputs | Daily at 18:00 UTC | Commits CSV and PNG files to repository. |
+| Upload to HuggingFace | Daily at 18:00 UTC | Syncs outputs folder to the HuggingFace Space. |
 
 Workflow configuration: `.github/workflows/electricity-price-daily.yml`
 
